@@ -1,11 +1,16 @@
 package ru.itis.inf304.entity;
 
 import jakarta.persistence.*;
-import java.util.Set;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user")
+@Data
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -13,59 +18,40 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
-    @Column
-    private String name;
+    @Column(nullable = false, unique = true)
+    private String email;
 
-    @Column
+    @Column(nullable = false)
     private String password;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
-    )
-    private Set<Role> roles;
+    @Column(nullable = false)
+    private boolean isEmailConfirmed = false;
 
-    public User(Long id, String username) {
-        this.id = id;
-        this.username = username;
+    @Column(unique = true)
+    private String verificationCode;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
-    public User() {
-
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void generateVerificationCode() {
+        this.verificationCode = UUID.randomUUID().toString();
     }
 
-    public Long getId() {
-        return id;
+    public void clearVerificationCode() {
+        this.verificationCode = null;
     }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
 }
